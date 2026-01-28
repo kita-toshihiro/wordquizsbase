@@ -3,6 +3,10 @@
 Streamlit と Supabase を利用した、TOEIC 頻出単語の 4択クイズアプリです。
 学習データはクラウド（Supabase）で管理されるため、進捗を永続的に記録し、苦手な単語を重点的に復習することが可能です。
 
+## URL
+
+https://wordquizsbase-z5jadxnmt4o.streamlit.app/
+
 ## 🚀 主な機能
 
 * **自動データインポート**: `words.csv` が存在する場合、初回起動時に自動的に Supabase へ単語データを登録します。
