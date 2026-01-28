@@ -2,12 +2,43 @@ import streamlit as st
 import pandas as pd
 from supabase import create_client, Client
 import random
+import os
 
-# --- Supabase設定 ---
-# StreamlitのSecrets管理（.streamlit/secrets.toml）に情報を保存してください
-url: str = st.secrets["SUPABASE_URL"]
-key: str = st.secrets["SUPABASE_KEY"]
-supabase: Client = create_client(url, key)
+# --- Supabase接続設定 ---
+@st.cache_resource
+def get_supabase_client():
+    url = st.secrets["SUPABASE_URL"]
+    key = st.secrets["SUPABASE_KEY"]
+    return create_client(url, key)
+
+supabase = get_supabase_client()
+
+# --- データベース初期化（CSVインポート） ---
+def init_supabase_data():
+    # テーブルが空かどうか確認
+    res = supabase.table("words").select("id", count="exact").limit(1).execute()
+    
+    # 既存データが0件かつCSVファイルが存在する場合に実行
+    if (res.count == 0 or len(res.data) == 0) and os.path.exists('words.csv'):
+        df_csv = pd.read_csv('words.csv')
+        
+        # Supabaseは一度に大量のデータを送ると制限に掛かることがあるため
+        # 辞書形式のリストに変換して一括挿入
+        data_to_insert = df_csv.to_dict(orient='records')
+        
+        with st.spinner('データベースに単語をインポート中...'):
+            # 100件ずつ分割して挿入（安全策）
+            chunk_size = 100
+            for i in range(0, len(data_to_insert), chunk_size):
+                chunk = data_to_insert[i:i + chunk_size]
+                supabase.table("words").insert(chunk).execute()
+        st.success(f"{len(data_to_insert)}件の単語をインポートしました！")
+
+# アプリ起動時に実行
+init_supabase_data()
+
+# --- 以降、データ取得やUIの処理 ---
+# (前回の回答と同じ get_words, save_record, prepare_quiz 関数...)
 
 def get_words(mode='all'):
     if mode == 'review':
