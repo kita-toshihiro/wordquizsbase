@@ -7,8 +7,14 @@ import os
 # --- Supabase接続設定 ---
 @st.cache_resource
 def get_supabase_client():
-    url = st.secrets["SUPABASE_URL"]
-    key = st.secrets["SUPABASE_KEY"]
+    #url = st.secrets["SUPABASE_URL"]
+    #key = st.secrets["SUPABASE_KEY"]
+    
+    import os
+    # 環境変数から取得（設定されていない場合は None が返る）
+    url = os.environ.get("SUPABASE_URL")
+    key = os.environ.get("SUPABASE_KEY")
+    
     return create_client(url, key)
 
 supabase = get_supabase_client()
